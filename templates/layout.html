@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>My Webpage!</title>
+        <meta name="viewport" content="width=device-width, inital-scale=1.0">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    </head>
+    <style>
+        h1,div, p,td, form{
+            color: whitesmoke;
+            text-align: center;
+            vertical-align: auto;
+        }
+        table{
+            color: pink;
+            text-align: center;
+            margin-right: auto;
+            margin-left: auto;
+            
+        }
+        th, td{
+            padding: 10px;
+        }
+        body{
+            background-image:url('http://cohoctonlibrary.org/wp-content/uploads/2014/06/Bookshelves-Background.jpg');
+        }
+    </style>
+    <body>
+        
+        <h1>{% block heading %}{% endblock %}</h1>
+
+
+
+
+
+        {% block body %}
+
+        {% endblock %}
+
+        <div>
+            <form action="{{ url_for('logout') }}" method="GET" class="logout">
+                <input type="submit" name="submit_button" value="Logout">
+            </form>
+        </div>
+        
+    </body>
+</html>

@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+
+{% block heading %}
+    Book Search
+{% endblock %}
+
+{% block body %}
+    <form action="{{ url_for('results') }}" method="post">
+        <input type="text" name='name' placeholder="Enter ISBN, Title, Author, or Year">
+        <input type="submit" name=submit_button value="Search">
+    </form>
+{% endblock %}

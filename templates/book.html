@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+
+{% block heading %}
+    Book Info
+{% endblock %}
+
+
+{% block body %}
+    
+    {% for i in book_res %}
+        <p>{{ i }}</p>       
+    {% endfor %}
+
+    {% if rating %}
+        <p>Average Score: {{rating}}</p>
+    {% else %}
+        <p>Average Score: DNE</p>    
+    {% endif %}
+
+    {% if total_ratings %}
+        <p>Total Ratings: {{ total_ratings }}</p>
+    {% else %}
+        <p>Total Ratings: DNE</p>
+    {%  endif %}
+
+    <p style="color: blanchedalmond;">{{ error }} </p>
+
+    <form action="{{ url_for('book', title = book_res[0], isbn = book_res[1], author = book_res[2], year = book_res[3]) }}" method = "POST">
+        <input type="text" name= 'name' style="height: 40px width" placeholder="Enter a Review">
+        <select name="stars" id="stars">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+        
+        <button>Post Review</button>
+    </form>
+
+
+    {% for i in message %}
+        <p>{{ username }}: {{i}} | stars: {{ stars }}</p>
+    {% endfor %}
+
+{% endblock %}
