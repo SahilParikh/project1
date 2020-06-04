@@ -35,10 +35,17 @@ def index():
 
 @app.route("/login", methods=["POST"])
 def login():
+    '''
+    Checks the user input in form. if form is blank and either button is pressed, nothign will happen
+    However, if form is not empty and Sign Up is pressed, it will check if the username exists. if username exists, 
+    it will notify user and will not log in. Likewise, if form is filled and Login is pushed, then it will check if 
+    the password, usernam are valid. If valid, the user will be signed in, else, the user will remain at the screen. 
+    '''
+    #get required login information, hash password
     name = request.form.get("name")
     password = request.form.get("password")
     hash_pwd = hashlib.sha256(password.encode('utf-8')). hexdigest()
-             
+     
     if name != '':
         if request.form['submit_button'] == 'Sign Up':
             info = db.execute("SELECT name FROM users where name=:name", {'name': name}).fetchone() 
@@ -48,13 +55,7 @@ def login():
             
             else:
                 db.execute("INSERT INTO users (name, password) VALUES (:name, :password)", {'name': name, 'password': hash_pwd})
-                db.commit()
-                
-                user_id = db.execute("SELECT id FROM users where name=:name", {'name': name}).fetchone()
-                
-                for i in user_id:
-                    session["user_name"] = i.name
-                    session["user_id"] = i.id              
+                db.commit()           
                 
                 return render_template('registration.html')          
 
@@ -74,10 +75,18 @@ def login():
 
 @app.route("/search", methods = ['POST', 'GET'])
 def search():
+    '''
+    renders the webpage that will allow the user to search a particular book
+    '''
     return render_template("search.html")
     
 @app.route('/results', methods=['POST'])
 def results():
+    '''
+    if search is valid, a webpage will render displaying a table with the 
+    appropriate information.  otherwise an error message will be displayed directing the 
+    user to redo the search 
+    '''
     item = (request.form.get("name")).title() 
 
 
@@ -88,27 +97,36 @@ def results():
         else:
             return render_template('results.html')
     else:
-        return render_template('search.html')
-
-   
+        return render_template('search.html') 
   
 
 @app.route('/book/<title>/<isbn>/<author>/<year>', methods = ["POST", "GET"])
 def book(title, isbn, author, year):
-    book_res = [title, isbn, author, year]
+    '''
+    function will check to see if form is blank/filled. if form is filled, it will check if it's users first review of 
+    that book. if so, it will display the review, otherwise an error message will be displayed.
+    '''
+    book_res = [title, isbn, author, year]   
     error = 'No Review Entered'
-    rating = (requests.get("https://www.goodreads.com/book/review_counts.json", params = {'key': 'ywiShb8nqSAlncAaP6bVKQ', 'isbns': isbn})).json()
+
+    #key information
+    key = os.getenv("GOODREADS_KEY")
+    #information from api
+    rating = (requests.get("https://www.goodreads.com/book/review_counts.json", params = {'key': key, 'isbns': isbn})).json()
     avg_rating = rating["books"][0]["average_rating"]
     total_ratings = rating["books"][0]["reviews_count"]
+    
+    #session information
     username = session["user_name"]
+
+    #stars review
     stars = request.form.get('stars')
 
     if session.get('message') is None:
         session['message'] = []
 
     if request.method == "POST":
-        review = request.form.get('name')
-        
+        review = request.form.get('name')        
 
         if review != '':
             review_check = db.execute("SELECT * from reviews WHERE (username = :username AND book = :book)", {'username': username, 'book': title}).fetchone()
@@ -122,16 +140,21 @@ def book(title, isbn, author, year):
                 return render_template('book.html', book_res= book_res, username = username, message = session['message'], stars = stars, rating = avg_rating, total_ratings = total_ratings)
             else:
                 return render_template('book.html', book_res= book_res, username = username, message = session['message'], stars = stars, error = 'Book already rated by user', rating = avg_rating, total_ratings = total_ratings)
-
+        
     return render_template('book.html', book_res = book_res, username = username, message = session['message'], stars = stars, rating = avg_rating, total_ratings = total_ratings)
 
 
 @app.route('/api/<isbn>')
 def api(isbn):
+    '''
+    function simply retrieves the desired review information from the api and displays it in a json format
+    '''
+
     book_info = db.execute("SELECT * FROM books WHERE isbn = :isbn", {'isbn': isbn}).fetchall()
+    key = os.getenv("GOODREADS_KEY")
     
     if book_info:
-        isbn_res = (requests.get("https://www.goodreads.com/book/review_counts.json", params = {'key': 'ywiShb8nqSAlncAaP6bVKQ', 'isbns': isbn})).json()
+        isbn_res = (requests.get("https://www.goodreads.com/book/review_counts.json", params = {'key': key, 'isbns': isbn})).json()
         
         for i in book_info:
             title = i.title
@@ -150,5 +173,8 @@ def api(isbn):
 
 @app.route('/logout')
 def logout():
+    '''
+    simply logs the user out and clears all sessions. 
+    '''
     session.clear()
     return render_template('index.html')
